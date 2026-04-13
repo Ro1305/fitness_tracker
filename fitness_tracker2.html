@@ -1,0 +1,348 @@
+<meta charset="utf-8">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:#1a1a1a;color:#e8e8e8;min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:1rem}
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;border-bottom:0.5px solid #333;padding-bottom:0}
+.tab{padding:8px 16px;font-size:14px;cursor:pointer;border:none;background:none;color:#888;border-bottom:2px solid transparent;margin-bottom:-0.5px}
+.tab.active{color:#e8e8e8;border-bottom:2px solid #e8e8e8;font-weight:500}
+.section{display:none}.section.active{display:block}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-nav{background:none;border:0.5px solid #444;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;color:#e8e8e8}
+.cal-nav:hover{background:#2a2a2a}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-size:12px;color:#666;padding:4px 0;font-weight:500}
+.cal-day{min-height:64px;border:0.5px solid #2e2e2e;border-radius:8px;padding:4px;cursor:pointer;background:#222}
+.cal-day:hover{border-color:#444}
+.cal-day.empty{background:none;border-color:transparent;cursor:default}
+.cal-day.today{border-color:#666}
+.cal-day .day-num{font-size:12px;color:#888}
+.cal-day.today .day-num{font-weight:500;color:#e8e8e8}
+.sport-badge{font-size:10px;padding:2px 5px;border-radius:4px;margin-top:2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.planned{opacity:0.5}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#222;border-radius:12px;padding:1.5rem;width:340px;border:0.5px solid #3a3a3a}
+.modal h3{font-size:16px;font-weight:500;margin-bottom:1rem;color:#e8e8e8}
+.field{margin-bottom:12px}
+.field label{font-size:13px;color:#888;display:block;margin-bottom:4px}
+.field select,.field input{width:100%;font-size:14px;background:#2a2a2a;border:0.5px solid #444;color:#e8e8e8;border-radius:8px;padding:7px 10px}
+.field select:focus,.field input:focus{outline:none;border-color:#666}
+.modal-actions{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
+.btn-del{background:none;border:0.5px solid #7a2020;color:#f09595;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px}
+.btn-save{background:#e8e8e8;border:none;color:#1a1a1a;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:500}
+.btn-cancel{background:none;border:0.5px solid #3a3a3a;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;color:#888}
+.entry-row{display:flex;align-items:center;justify-content:space-between;background:#2a2a2a;border-radius:6px;padding:6px 10px;margin-bottom:6px}
+.entry-row span{font-size:13px;color:#ccc}
+.entry-row button{background:none;border:none;color:#666;cursor:pointer;font-size:16px;line-height:1;padding:0 2px}
+.entry-row button:hover{color:#f09595}
+.add-second{font-size:12px;color:#888;background:none;border:0.5px dashed #3a3a3a;border-radius:6px;padding:5px 10px;cursor:pointer;width:100%;margin-top:4px;text-align:center}
+.add-second:hover{border-color:#555;color:#aaa}
+.modal-section{border-top:0.5px solid #2e2e2e;margin-top:12px;padding-top:12px}
+.modal-section-title{font-size:12px;color:#666;margin-bottom:8px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{background:#222;border-radius:8px;padding:1rem;border:0.5px solid #2e2e2e}
+.stat-card .sport-icon{font-size:22px;margin-bottom:6px}
+.stat-card .sport-name{font-size:13px;color:#888;margin-bottom:4px}
+.stat-card .km{font-size:22px;font-weight:500}
+.stat-card .sessions{font-size:12px;color:#666;margin-top:2px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:13px;color:#888}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.instr-list{display:flex;flex-direction:column;gap:12px}
+.instr-card{background:#222;border:0.5px solid #2e2e2e;border-radius:12px;padding:1rem 1.25rem}
+.instr-card h3{font-size:15px;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:8px;color:#e8e8e8}
+.instr-card textarea{width:100%;font-size:13px;color:#e8e8e8;background:#2a2a2a;border:0.5px solid #3a3a3a;border-radius:8px;padding:8px;resize:vertical;min-height:80px;font-family:var(--font-sans)}
+.instr-card textarea:focus{outline:none;border-color:#555}
+.instr-card textarea::placeholder{color:#555}
+.save-msg{font-size:12px;color:#5DCAA5;margin-top:4px;display:none}
+.period-filter{display:flex;gap:8px;margin-bottom:1rem}
+.pf-btn{background:none;border:0.5px solid #333;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px;color:#888}
+.pf-btn.active{background:#2a2a2a;color:#e8e8e8;border-color:#444}
+</style>
+
+<h2 class="sr-only">Application de suivi d'activité physique avec calendrier, statistiques et instructions</h2>
+
+<div class="app">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('calendar')">Calendrier</button>
+    <button class="tab" onclick="showTab('stats')">Kilométrage</button>
+    <button class="tab" onclick="showTab('instructions')">Instructions</button>
+  </div>
+
+  <div id="calendar" class="section active">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
+      <span id="month-label" style="font-size:16px;font-weight:500;color:#e8e8e8"></span>
+      <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div id="stats" class="section">
+    <div class="period-filter">
+      <button class="pf-btn active" onclick="setPeriod('all',this)">Tout</button>
+      <button class="pf-btn" onclick="setPeriod('month',this)">Ce mois</button>
+      <button class="pf-btn" onclick="setPeriod('week',this)">Cette semaine</button>
+    </div>
+    <div class="stat-grid" id="stat-grid"></div>
+  </div>
+
+  <div id="instructions" class="section">
+    <div class="instr-list" id="instr-list"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="bgClose(event)">
+  <div class="modal">
+    <h3 id="modal-title">Séance</h3>
+
+    <div id="entries-list"></div>
+    <button class="add-second" id="btn-add-entry" onclick="addEntryForm()">+ Ajouter un sport</button>
+
+    <div class="modal-section" id="entry-form" style="display:none">
+      <div class="modal-section-title" id="form-label">Séance 1</div>
+      <div class="field">
+        <label>Sport</label>
+        <select id="m-sport"></select>
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="m-type">
+          <option value="done">Réalisée</option>
+          <option value="planned">Planifiée</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Distance (km)</label>
+        <input type="number" id="m-km" min="0" step="0.1" placeholder="0">
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <input type="text" id="m-notes" placeholder="Optionnel">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn-cancel" onclick="cancelForm()">Annuler</button>
+        <button class="btn-save" onclick="confirmEntry()">OK</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SPORTS=[
+  {id:'run',name:'Course',icon:'&#x1F3C3;',color:'#D85A30'},
+  {id:'bike',name:'Velo',icon:'&#x1F6B4;',color:'#1D9E75'},
+  {id:'swim',name:'Natation',icon:'&#x1F3CA;',color:'#378ADD'},
+  {id:'gym',name:'Musculation',icon:'&#x1F4AA;',color:'#7F77DD'},
+  {id:'walk',name:'Marche',icon:'&#x1F6B6;',color:'#BA7517'},
+  {id:'climb',name:'Escalade',icon:'&#x1F9D7;',color:'#D4537E'}
+];
+
+let entries={};
+let instructions={};
+let currentDate=new Date();
+let editKey=null;
+let editingIdx=null;
+let statPeriod='all';
+
+function save(){try{localStorage.setItem('ft_entries2',JSON.stringify(entries));localStorage.setItem('ft_instr2',JSON.stringify(instructions));}catch(e){}}
+function load(){try{const e=localStorage.getItem('ft_entries2');if(e)entries=JSON.parse(e);const i=localStorage.getItem('ft_instr2');if(i)instructions=JSON.parse(i);}catch(e){}}
+
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',['calendar','stats','instructions'][i]===id)});
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='stats')renderStats();
+  if(id==='instructions')renderInstructions();
+}
+
+const MONTHS=['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
+const DAYS=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+function changeMonth(d){currentDate=new Date(currentDate.getFullYear(),currentDate.getMonth()+d,1);renderCalendar();}
+
+function renderCalendar(){
+  const y=currentDate.getFullYear(),m=currentDate.getMonth();
+  document.getElementById('month-label').textContent=MONTHS[m]+' '+y;
+  const firstDay=new Date(y,m,1);
+  let startDow=(firstDay.getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const todayKey=key(new Date());
+
+  document.getElementById('legend').innerHTML=SPORTS.map(s=>`<span class="legend-item"><span class="legend-dot" style="background:${s.color}"></span>${s.name}</span>`).join('');
+
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=DAYS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startDow;i++)grid.innerHTML+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const k=key(new Date(y,m,d));
+    const isToday=k===todayKey;
+    const dayEntries=entries[k]||[];
+    let inner=`<div class="day-num">${d}</div>`;
+    dayEntries.forEach(e=>{
+      const sp=SPORTS.find(s=>s.id===e.sport);
+      if(!sp)return;
+      inner+=`<div class="sport-badge${e.type==='planned'?' planned':''}" style="background:${sp.color}30;color:${sp.color}">${sp.name}${e.km>0?' '+e.km+'km':''}</div>`;
+    });
+    grid.innerHTML+=`<div class="cal-day${isToday?' today':''}" onclick="openModal('${k}')">${inner}</div>`;
+  }
+}
+
+function key(d){return d.toISOString().slice(0,10)}
+
+function openModal(k){
+  editKey=k;
+  editingIdx=null;
+  const d=new Date(k+'T12:00:00');
+  document.getElementById('modal-title').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('entry-form').style.display='none';
+  renderEntriesList();
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function renderEntriesList(){
+  const list=document.getElementById('entries-list');
+  const dayEntries=entries[editKey]||[];
+  const canAdd=dayEntries.length<2;
+  list.innerHTML=dayEntries.map((e,i)=>{
+    const sp=SPORTS.find(s=>s.id===e.sport)||{name:'?',color:'#888'};
+    const label=`${sp.name}${e.km>0?' — '+e.km+'km':''}${e.type==='planned'?' (planifiee)':''}`;
+    return `<div class="entry-row">
+      <span style="color:${sp.color};font-weight:500">${label}</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="editEntry(${i})" title="Modifier">&#9998;</button>
+        <button onclick="removeEntry(${i})" title="Supprimer">&#215;</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('btn-add-entry').style.display=canAdd?'block':'none';
+}
+
+function addEntryForm(){
+  editingIdx=null;
+  document.getElementById('form-label').textContent=`Seance ${(entries[editKey]||[]).length+1}`;
+  resetForm();
+  document.getElementById('entry-form').style.display='block';
+  document.getElementById('btn-add-entry').style.display='none';
+}
+
+function editEntry(i){
+  editingIdx=i;
+  const e=(entries[editKey]||[])[i];
+  document.getElementById('form-label').textContent='Modifier la seance';
+  resetForm();
+  document.getElementById('m-sport').value=e.sport;
+  document.getElementById('m-type').value=e.type||'done';
+  document.getElementById('m-km').value=e.km||'';
+  document.getElementById('m-notes').value=e.notes||'';
+  document.getElementById('entry-form').style.display='block';
+  document.getElementById('btn-add-entry').style.display='none';
+}
+
+function resetForm(){
+  const sel=document.getElementById('m-sport');
+  sel.innerHTML=SPORTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('m-type').value='done';
+  document.getElementById('m-km').value='';
+  document.getElementById('m-notes').value='';
+}
+
+function cancelForm(){
+  document.getElementById('entry-form').style.display='none';
+  editingIdx=null;
+  renderEntriesList();
+}
+
+function confirmEntry(){
+  const entry={
+    sport:document.getElementById('m-sport').value,
+    type:document.getElementById('m-type').value,
+    km:parseFloat(document.getElementById('m-km').value)||0,
+    notes:document.getElementById('m-notes').value
+  };
+  if(!entries[editKey])entries[editKey]=[];
+  if(editingIdx!==null){entries[editKey][editingIdx]=entry;}
+  else{entries[editKey].push(entry);}
+  save();
+  document.getElementById('entry-form').style.display='none';
+  editingIdx=null;
+  renderEntriesList();
+  renderCalendar();
+}
+
+function removeEntry(i){
+  if(!entries[editKey])return;
+  entries[editKey].splice(i,1);
+  if(!entries[editKey].length)delete entries[editKey];
+  save();renderEntriesList();renderCalendar();
+}
+
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');editKey=null;}
+function bgClose(e){if(e.target===document.getElementById('modal-bg'))closeModal();}
+
+function setPeriod(p,btn){
+  statPeriod=p;
+  document.querySelectorAll('.pf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStats();
+}
+
+function renderStats(){
+  const now=new Date();
+  const stats={};
+  SPORTS.forEach(s=>{stats[s.id]={km:0,sessions:0};});
+  Object.entries(entries).forEach(([k,arr])=>{
+    if(!arr||!arr.length)return;
+    const d=new Date(k+'T12:00:00');
+    if(statPeriod==='week'){
+      const wd=new Date(now);wd.setDate(now.getDate()-((now.getDay()+6)%7));wd.setHours(0,0,0,0);
+      if(d<wd)return;
+    } else if(statPeriod==='month'){
+      if(d.getFullYear()!==now.getFullYear()||d.getMonth()!==now.getMonth())return;
+    }
+    arr.forEach(e=>{
+      if(e.type==='done'&&stats[e.sport]!==undefined){stats[e.sport].km+=e.km||0;stats[e.sport].sessions++;}
+    });
+  });
+  document.getElementById('stat-grid').innerHTML=SPORTS.map(s=>{
+    const st=stats[s.id];
+    return `<div class="stat-card">
+      <div class="sport-icon">${s.icon}</div>
+      <div class="sport-name">${s.name}</div>
+      <div class="km" style="color:${s.color}">${st.km.toFixed(1)} km</div>
+      <div class="sessions">${st.sessions} seance${st.sessions!==1?'s':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderInstructions(){
+  document.getElementById('instr-list').innerHTML=SPORTS.map(s=>`
+    <div class="instr-card">
+      <h3><span style="font-size:16px">${s.icon}</span> <span style="color:${s.color}">${s.name}</span></h3>
+      <textarea id="instr-${s.id}" placeholder="Vos instructions, exercices, conseils pour ${s.name}..."
+        oninput="autoSaveInstr('${s.id}')">${instructions[s.id]||''}</textarea>
+      <div class="save-msg" id="msg-${s.id}">Enregistre</div>
+    </div>`).join('');
+}
+
+let saveTimers={};
+function autoSaveInstr(id){
+  clearTimeout(saveTimers[id]);
+  saveTimers[id]=setTimeout(()=>{
+    instructions[id]=document.getElementById('instr-'+id).value;
+    save();
+    const msg=document.getElementById('msg-'+id);
+    msg.style.display='block';
+    setTimeout(()=>{msg.style.display='none';},1500);
+  },800);
+}
+
+load();renderCalendar();
+</script>
