@@ -211,7 +211,7 @@ const SPORTS=[
  {id:'skip',  name:'Joker',    icon:'🃏', color:'#666666', hasKm:false, hasTime:false, isAuto:false}
 ];
 
-// Variables globales initiales
+// Variables globales avec structure stricte par utilisateur
 let entries = {};
 let instructions = {'Robin':{}, 'Carla':{}};
 let recordsManual = {'Robin':{}, 'Carla':{}};
@@ -224,21 +224,18 @@ window.save = function(fromFirebase = false){
     if(!fromFirebase) set(dataRef, { entries, instructions, recordsManual, weeklyGoal });
 }
 
-// CORRECTION ICI : Conversion intelligente des anciennes données Firebase
 onValue(dataRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
         entries = data.entries || {};
         
-        // Sécurise les records
+        // Isolation stricte des données pour éviter les fuites de mémoire (bugs d'instructions)
         let rm = data.recordsManual || {};
-        recordsManual = rm['Robin'] ? rm : {'Robin': rm, 'Carla': {}};
+        recordsManual = {'Robin': rm['Robin'] || {}, 'Carla': rm['Carla'] || {}};
         
-        // Sécurise les instructions
         let inst = data.instructions || {};
-        instructions = inst['Robin'] ? inst : {'Robin': inst, 'Carla': {}};
+        instructions = {'Robin': inst['Robin'] || {}, 'Carla': inst['Carla'] || {}};
         
-        // Sécurise l'objectif (transforme l'ancien nombre en objet pour 2 personnes)
         let wg = data.weeklyGoal;
         if (typeof wg === 'number' || typeof wg === 'string') {
             weeklyGoal = {'Robin': Number(wg), 'Carla': 30};
@@ -288,10 +285,9 @@ window.importData = function(ev){
   const f=ev.target.files[0]; if(!f)return;
   const r=new FileReader(); r.onload=(e)=>{
     const d=JSON.parse(e.target.result); 
-    // On repasse par la vérification sécurisée à l'import
     entries=d.entries||{}; 
-    instructions=d.instructions['Robin'] ? d.instructions : {'Robin':d.instructions||{}, 'Carla':{}};
-    recordsManual=d.recordsManual['Robin'] ? d.recordsManual : {'Robin':d.recordsManual||{}, 'Carla':{}};
+    instructions={'Robin': (d.instructions && d.instructions['Robin']) ? d.instructions['Robin'] : {}, 'Carla': (d.instructions && d.instructions['Carla']) ? d.instructions['Carla'] : {}};
+    recordsManual={'Robin': (d.recordsManual && d.recordsManual['Robin']) ? d.recordsManual['Robin'] : {}, 'Carla': (d.recordsManual && d.recordsManual['Carla']) ? d.recordsManual['Carla'] : {}};
     weeklyGoal=(typeof d.weeklyGoal==='number') ? {'Robin':d.weeklyGoal, 'Carla':30} : (d.weeklyGoal||{'Robin':30, 'Carla':30});
     window.save(); location.reload();
   }; r.readAsText(f);
@@ -353,7 +349,6 @@ function renderHeatmap(){
 
 window.setStatPeriod = function(p, btn){ statPeriod=p; document.querySelectorAll('#stats .f-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderStats(); }
 
-// CORRECTION ICI : On s'assure de récupérer la bonne variable
 window.updateWeeklyGoal = function(){ 
     const currentGoal = weeklyGoal[currentUser] || 30;
     const res = prompt(`Objectif hebdo pour ${currentUser} (km) :`, currentGoal); 
@@ -420,21 +415,47 @@ function renderStats(){
   }).join('');
 }
 
+// CORRECTION ICI : Nouveaux records par catégories de distance
 function renderRecords(){
-    const auto = { run:{dist:0, speed:0}, bike:{dist:0, speed:0}, walk:{dist:0, speed:0} };
+    const auto = { 
+        run:  { maxDist:0, p5:0, p10:0, p15:0 }, 
+        bike: { maxDist:0, p5:0, p10:0, p15:0 }, 
+        walk: { maxDist:0, p5:0, p10:0, p15:0 } 
+    };
+
     Object.values(entries).flat().forEach(e=>{
         if((e.user || 'Robin') !== currentUser) return; 
         if(auto[e.sport]){
-            if(e.km > auto[e.sport].dist) auto[e.sport].dist = e.km;
+            if(e.km > auto[e.sport].maxDist) auto[e.sport].maxDist = e.km;
             if(e.km > 0 && e.time > 0){
-                const speed = e.km / (e.time/60); if(speed > auto[e.sport].speed) auto[e.sport].speed = speed;
+                const speed = e.km / (e.time/60); 
+                
+                // On détermine la catégorie de distance
+                let cat = null;
+                if(e.km < 7.5) cat = 'p5';
+                else if(e.km >= 7.5 && e.km < 12.5) cat = 'p10';
+                else if(e.km >= 12.5) cat = 'p15';
+
+                // Si la vitesse est meilleure que le record existant pour cette catégorie
+                if(cat && speed > auto[e.sport][cat]) {
+                    auto[e.sport][cat] = speed;
+                }
             }
         }
     });
+
+    const formatPace = (speed, id) => speed > 0 ? (id==='bike' ? `${speed.toFixed(1)} km/h` : `${Math.floor(60/speed)}'${String(Math.round(((60/speed)%1)*60)).padStart(2,'0')}/km`) : '-';
+
     document.getElementById('auto-records').innerHTML = Object.entries(auto).map(([id, val])=>{
         const s = SPORTS.find(sp=>sp.id===id);
-        const pace = val.speed > 0 ? (id==='bike' ? `${val.speed.toFixed(1)} km/h` : `${Math.floor(60/val.speed)}'${String(Math.round(((60/val.speed)%1)*60)).padStart(2,'0')}/km`) : '-';
-        return `<div class="stat-card" style="margin-bottom:8px"><div style="font-weight:600; color:${s.color}; margin-bottom:8px">${s.icon} ${s.name}</div><div class="rec-item"><span>Distance Max</span><span class="rec-val">${val.dist > 0 ? val.dist.toFixed(1)+' km' : '-'}</span></div><div class="rec-item"><span>Record Rythme</span><span class="rec-val">${pace}</span></div></div>`;
+        return `
+        <div class="stat-card" style="margin-bottom:8px">
+            <div style="font-weight:600; color:${s.color}; margin-bottom:8px">${s.icon} ${s.name}</div>
+            <div class="rec-item"><span>Distance Max</span><span class="rec-val">${val.maxDist > 0 ? val.maxDist.toFixed(1)+' km' : '-'}</span></div>
+            <div class="rec-item"><span>Record Allure (< 7.5km)</span><span class="rec-val">${formatPace(val.p5, id)}</span></div>
+            <div class="rec-item"><span>Record Allure (~10km)</span><span class="rec-val">${formatPace(val.p10, id)}</span></div>
+            <div class="rec-item"><span>Record Allure (15km+)</span><span class="rec-val">${formatPace(val.p15, id)}</span></div>
+        </div>`;
     }).join('');
     
     document.getElementById('manual-records').innerHTML = SPORTS.filter(s=>!s.isAuto && s.id!=='skip').map(s=>{
@@ -442,13 +463,21 @@ function renderRecords(){
     }).join('');
 }
 
-window.updateManualRecord = function(id, val){ recordsManual[currentUser][id] = val; window.save(); }
+window.updateManualRecord = function(id, val){ 
+    if(!recordsManual[currentUser]) recordsManual[currentUser] = {};
+    recordsManual[currentUser][id] = val; 
+    window.save(); 
+}
 
 function renderInstructions(){
   document.getElementById('instr-list').innerHTML=SPORTS.map(s=>`<div class="instr-card"><h3>${s.icon} <span style="color:${s.color}">${s.name}</span></h3><textarea oninput="updateInstruction('${s.id}', this.value)">${instructions[currentUser][s.id]||''}</textarea></div>`).join('');
 }
 
-window.updateInstruction = function(id, val){ instructions[currentUser][id] = val; window.save(); }
+window.updateInstruction = function(id, val){ 
+    if(!instructions[currentUser]) instructions[currentUser] = {};
+    instructions[currentUser][id] = val; 
+    window.save(); 
+}
 
 window.openModal = function(k){ 
     editKey=k; const d=new Date(k+'T12:00:00'); 
