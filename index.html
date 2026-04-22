@@ -211,37 +211,41 @@ const SPORTS=[
  {id:'skip',  name:'Joker',    icon:'🃏', color:'#666666', hasKm:false, hasTime:false, isAuto:false}
 ];
 
-let entries = JSON.parse(localStorage.getItem('ft2_e') || '{}');
-let instructions = JSON.parse(localStorage.getItem('ft2_i') || '{}');
-let recordsManual = JSON.parse(localStorage.getItem('ft2_rm') || '{}');
-let weeklyGoal = JSON.parse(localStorage.getItem('ft2_goal') || '{"Robin":30, "Carla":30}');
+// Variables globales initiales
+let entries = {};
+let instructions = {'Robin':{}, 'Carla':{}};
+let recordsManual = {'Robin':{}, 'Carla':{}};
+let weeklyGoal = {'Robin':30, 'Carla':30};
 let currentDate = new Date(), statPeriod = 'all', editKey = null, editIdx = null;
 
 let currentUser = localStorage.getItem('fit_user') || 'Robin';
 
-// MIGRATION DES ANCIENNES DONNÉES VERS DES PROFILS SÉPARÉS
-function migrateData() {
-    if (!recordsManual['Robin']) { const old = {...recordsManual}; recordsManual = {'Robin':old, 'Carla':{}}; }
-    if (!instructions['Robin']) { const old = {...instructions}; instructions = {'Robin':old, 'Carla':{}}; }
-    if (typeof weeklyGoal === 'number' || typeof weeklyGoal === 'string') { weeklyGoal = {'Robin':Number(weeklyGoal), 'Carla':30}; }
-}
-migrateData();
-
 window.save = function(fromFirebase = false){ 
-    localStorage.setItem('ft2_e', JSON.stringify(entries)); 
-    localStorage.setItem('ft2_i', JSON.stringify(instructions));
-    localStorage.setItem('ft2_rm', JSON.stringify(recordsManual));
-    localStorage.setItem('ft2_goal', JSON.stringify(weeklyGoal));
     if(!fromFirebase) set(dataRef, { entries, instructions, recordsManual, weeklyGoal });
 }
 
+// CORRECTION ICI : Conversion intelligente des anciennes données Firebase
 onValue(dataRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
         entries = data.entries || {};
-        instructions = data.instructions || {'Robin':{}, 'Carla':{}};
-        recordsManual = data.recordsManual || {'Robin':{}, 'Carla':{}};
-        weeklyGoal = data.weeklyGoal || {'Robin':30, 'Carla':30};
+        
+        // Sécurise les records
+        let rm = data.recordsManual || {};
+        recordsManual = rm['Robin'] ? rm : {'Robin': rm, 'Carla': {}};
+        
+        // Sécurise les instructions
+        let inst = data.instructions || {};
+        instructions = inst['Robin'] ? inst : {'Robin': inst, 'Carla': {}};
+        
+        // Sécurise l'objectif (transforme l'ancien nombre en objet pour 2 personnes)
+        let wg = data.weeklyGoal;
+        if (typeof wg === 'number' || typeof wg === 'string') {
+            weeklyGoal = {'Robin': Number(wg), 'Carla': 30};
+        } else {
+            weeklyGoal = wg || {'Robin':30, 'Carla':30};
+        }
+
         window.save(true);
         refreshAll();
     }
@@ -284,7 +288,11 @@ window.importData = function(ev){
   const f=ev.target.files[0]; if(!f)return;
   const r=new FileReader(); r.onload=(e)=>{
     const d=JSON.parse(e.target.result); 
-    entries=d.entries||{}; instructions=d.instructions||{'Robin':{}, 'Carla':{}}; recordsManual=d.recordsManual||{'Robin':{}, 'Carla':{}}; weeklyGoal=d.weeklyGoal||{'Robin':30, 'Carla':30};
+    // On repasse par la vérification sécurisée à l'import
+    entries=d.entries||{}; 
+    instructions=d.instructions['Robin'] ? d.instructions : {'Robin':d.instructions||{}, 'Carla':{}};
+    recordsManual=d.recordsManual['Robin'] ? d.recordsManual : {'Robin':d.recordsManual||{}, 'Carla':{}};
+    weeklyGoal=(typeof d.weeklyGoal==='number') ? {'Robin':d.weeklyGoal, 'Carla':30} : (d.weeklyGoal||{'Robin':30, 'Carla':30});
     window.save(); location.reload();
   }; r.readAsText(f);
 }
@@ -344,9 +352,16 @@ function renderHeatmap(){
 }
 
 window.setStatPeriod = function(p, btn){ statPeriod=p; document.querySelectorAll('#stats .f-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderStats(); }
+
+// CORRECTION ICI : On s'assure de récupérer la bonne variable
 window.updateWeeklyGoal = function(){ 
-    const res = prompt(`Objectif hebdo pour ${currentUser} (km) :`, weeklyGoal[currentUser]); 
-    if(res && !isNaN(res)){ weeklyGoal[currentUser] = parseFloat(res); window.save(); renderStats(); } 
+    const currentGoal = weeklyGoal[currentUser] || 30;
+    const res = prompt(`Objectif hebdo pour ${currentUser} (km) :`, currentGoal); 
+    if(res && !isNaN(res)){ 
+        weeklyGoal[currentUser] = parseFloat(res); 
+        window.save(); 
+        renderStats(); 
+    } 
 }
 
 function renderStats(){
@@ -384,8 +399,9 @@ function renderStats(){
       }); 
   });
   
-  document.getElementById('goal-val').innerText = `${wKm.toFixed(1)} / ${weeklyGoal[currentUser]} km`;
-  document.getElementById('goal-bar').style.width = Math.min(100, (wKm/weeklyGoal[currentUser])*100) + '%';
+  const currentGoal = weeklyGoal[currentUser] || 30;
+  document.getElementById('goal-val').innerText = `${wKm.toFixed(1)} / ${currentGoal} km`;
+  document.getElementById('goal-bar').style.width = Math.min(100, (wKm/currentGoal)*100) + '%';
   document.getElementById('duel-robin').innerText = rKm.toFixed(1) + ' km';
   document.getElementById('duel-carla').innerText = cKm.toFixed(1) + ' km';
 
@@ -394,7 +410,7 @@ function renderStats(){
       const dk = new Date(k); if(statPeriod==='month' && dk.getMonth()!==now.getMonth()) return;
       if(statPeriod==='week' && dk < mon) return;
       day.forEach(e=>{ 
-          if((e.user || 'Robin') !== currentUser) return; // FILTRE PAR UTILISATEUR
+          if((e.user || 'Robin') !== currentUser) return; 
           sObj[e.sport].k+=e.km||0; sObj[e.sport].t+=e.time||0; sObj[e.sport].n++; 
       });
   });
@@ -407,7 +423,7 @@ function renderStats(){
 function renderRecords(){
     const auto = { run:{dist:0, speed:0}, bike:{dist:0, speed:0}, walk:{dist:0, speed:0} };
     Object.values(entries).flat().forEach(e=>{
-        if((e.user || 'Robin') !== currentUser) return; // FILTRE PAR UTILISATEUR
+        if((e.user || 'Robin') !== currentUser) return; 
         if(auto[e.sport]){
             if(e.km > auto[e.sport].dist) auto[e.sport].dist = e.km;
             if(e.km > 0 && e.time > 0){
