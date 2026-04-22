@@ -5,19 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fitness Tracker Pro - Sync Duo</title>
 <style>
-/* --- TON STYLE ORIGINAL A ÉTÉ CONSERVÉ À 100% --- */
+/* --- TON STYLE ORIGINAL --- */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
  --bg0:#1a1a1a;--bg1:#242424;--bg2:#2e2e2e;
  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
  --text1:#f0f0f0;--text2:#a0a0a0;--text3:#666;
- --accent:#60a5fa; --pink:#f472b6; /* Ajout du rose pour Carla */
+ --accent:#60a5fa; --pink:#f472b6; 
  --level0: #2e2e2e; --level1: #0e4429; --level2: #006d32; --level3: #26a641; --level4: #39d353;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text1);background:var(--bg0);min-height:100vh}
 .app{max-width:600px;margin:0 auto;padding:0.75rem}
 
-/* --- AJOUT DISCRET POUR LE CHOIX DU PROFIL --- */
 .user-selector{display:flex; gap:8px; margin-bottom:15px;}
 .u-btn{flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg1); color:var(--text2); cursor:pointer; font-size:13px; font-weight:600; transition:0.2s}
 .u-btn.active-robin{background:var(--accent); color:white; border-color:white;}
@@ -28,16 +27,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .tab.active{color:var(--text1);border-bottom:2px solid var(--text1);font-weight:500}
 .section{display:none}.section.active{display:block}
 
-/* Widgets Stats */
 .widgets-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px}
 .widget-card{background:var(--bg1);border-radius:12px;padding:15px;border:0.5px solid var(--border);position:relative}
-.w-label{font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:6px;letter-spacing:0.5px}
+.w-label{font-size:10px;color:var(--text2);text-transform:uppercase;margin-bottom:6px;letter-spacing:0.5px; display:flex; justify-content:space-between; align-items:center;}
+.user-tag{color:var(--text1); background:var(--bg2); padding:2px 6px; border-radius:4px; font-weight:bold;}
 .w-val{font-size:22px;font-weight:700}
 .progress-bg{height:6px;background:var(--bg2);border-radius:3px;margin-top:10px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);transition:width 0.4s ease}
 .edit-goal{position:absolute;top:12px;right:12px;font-size:10px;color:var(--accent);text-decoration:underline;cursor:pointer}
 
-/* Heatmap */
 .heatmap-container{background:var(--bg1);border-radius:12px;padding:15px;border:0.5px solid var(--border);margin-bottom:15px; overflow-x: auto;}
 .heatmap-grid{display: flex; gap: 3px; min-width: 500px;}
 .heatmap-week{display: flex; flex-direction: column; gap: 3px;}
@@ -48,7 +46,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .hm-level-4{background: var(--level4);}
 .hm-skip{background: #555;}
 
-/* Calendrier & Stats */
 .f-btn{background:none;border:0.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text2);cursor:pointer}
 .f-btn.active{background:var(--bg2);color:var(--text1);border-color:var(--border2)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
@@ -60,12 +57,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .rec-item{display:flex;justify-content:space-between;margin-top:8px;font-size:13px}
 .rec-val{color:var(--accent);font-weight:600}
 
-/* Instructions */
 .instr-card{background:var(--bg1);border:0.5px solid var(--border);border-radius:12px;padding:0.85rem 1rem;margin-bottom:10px}
 .instr-card h3{font-size:14px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px}
 .instr-card textarea{width:100%;font-size:13px;color:var(--text1);background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:8px;resize:vertical;min-height:80px;font-family:inherit}
 
-/* Modal */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:flex-end;justify-content:center}
 .modal-bg.open{display:flex}
 .modal{background:var(--bg1);border-radius:16px 16px 0 0;padding:1.5rem;width:100%;max-width:600px;padding-bottom:calc(1.5rem + env(safe-area-inset-bottom,0px))}
@@ -103,25 +98,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
  <div id="stats" class="section">
    <div class="widgets-row">
      <div class="widget-card" style="border-top: 3px solid var(--accent)">
-        <div class="w-label">Total Robin (Sélection)</div>
+        <div class="w-label">Total Robin</div>
         <div class="w-val" id="duel-robin">0 km</div>
      </div>
      <div class="widget-card" style="border-top: 3px solid var(--pink)">
-        <div class="w-label">Total Carla (Sélection)</div>
+        <div class="w-label">Total Carla</div>
         <div class="w-val" id="duel-carla">0 km</div>
      </div>
    </div>
 
    <div class="widgets-row">
-     <div class="widget-card"><div class="w-label">Série Actuelle</div><div class="w-val">🔥 <span id="streak-val">0</span> j</div></div>
+     <div class="widget-card">
+         <div class="w-label">Série Actuelle <span class="user-tag" id="streak-user"></span></div>
+         <div class="w-val">🔥 <span id="streak-val">0</span> j</div>
+     </div>
      <div class="widget-card">
        <span class="edit-goal" onclick="updateWeeklyGoal()">Modifier</span>
-       <div class="w-label">Objectif Hebdo</div><div class="w-val" id="goal-val">0 / 30 km</div>
+       <div class="w-label">Obj. Hebdo <span class="user-tag" id="goal-user"></span></div>
+       <div class="w-val" id="goal-val">0 / 30 km</div>
        <div class="progress-bg"><div id="goal-bar" class="progress-fill" style="width:0%"></div></div>
      </div>
    </div>
 
-   <div class="w-label" style="margin-bottom:8px">Activité Annuelle</div>
+   <div class="w-label" style="margin-bottom:8px">Activité Annuelle <span class="user-tag" id="hm-user"></span></div>
    <div class="heatmap-container"><div id="heatmap-grid" class="heatmap-grid"></div></div>
 
    <div style="display:flex;gap:6px;margin-bottom:1rem">
@@ -132,7 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px" id="stat-grid"></div>
 
    <div class="stat-card" style="margin-top:20px; grid-column: span 2;">
-     <div class="w-label">Sauvegarde externe</div>
+     <div class="w-label">Sauvegarde externe globale</div>
      <div style="display:flex; gap:8px; margin-top:8px">
        <button class="f-btn" style="flex:1" onclick="exportData()">Exporter</button>
        <button class="f-btn" style="flex:1" onclick="document.getElementById('fileIn').click()">Importer</button>
@@ -142,13 +141,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
  </div>
 
  <div id="records" class="section">
-    <div class="w-label" style="margin-bottom:10px">RECORDS AUTOMATIQUES</div>
+    <div class="w-label" style="margin-bottom:10px; display:flex; align-items:center; gap:10px">
+        RECORDS AUTOMATIQUES <span class="user-tag" id="rec-auto-user"></span>
+    </div>
     <div id="auto-records" style="display:grid;gap:8px"></div>
-    <div class="w-label" style="margin:20px 0 10px">RECORDS MANUELS</div>
+    <div class="w-label" style="margin:20px 0 10px; display:flex; align-items:center; gap:10px">
+        RECORDS MANUELS <span class="user-tag" id="rec-man-user"></span>
+    </div>
     <div id="manual-records" style="display:grid;gap:8px"></div>
  </div>
 
  <div id="instructions" class="section">
+    <div class="w-label" style="margin-bottom:10px; display:flex; align-items:center; gap:10px">
+        PROGRAMMES <span class="user-tag" id="inst-user"></span>
+    </div>
    <div id="instr-list"></div>
  </div>
 </div>
@@ -159,7 +165,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
    
    <div id="view-list">
      <div id="list-container"></div>
-     <button onclick="showForm()" style="width:100%; padding:15px; background:none; border:1px dashed var(--border2); color:var(--text2); border-radius:8px; margin:10px 0; cursor:pointer">+ Ajouter une séance</button>
+     <button onclick="showForm()" style="width:100%; padding:15px; background:none; border:1px dashed var(--border2); color:var(--text2); border-radius:8px; margin:10px 0; cursor:pointer">+ Ajouter une séance pour <span id="add-for-user"></span></button>
      <button onclick="closeModal()" style="width:100%;background:none;border:none;color:var(--text3);padding:10px">Fermer</button>
    </div>
 
@@ -181,7 +187,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
 
-// Tes clés Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDhXyhxko-85-JqA3BUfM4jzmcO_tBl9JI",
   authDomain: "fitcouple-2b218.firebaseapp.com",
@@ -196,7 +201,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const dataRef = ref(db, 'fitness_sync');
 
-// TES VARIABLES D'ORIGINE
 const SPORTS=[
  {id:'run',   name:'Course',   icon:'🏃', color:'#D85A30', hasKm:true,  hasTime:true,  isAuto:true},
  {id:'bike',  name:'Velo',     icon:'🚴', color:'#1D9E75', hasKm:true,  hasTime:true,  isAuto:true},
@@ -210,37 +214,41 @@ const SPORTS=[
 let entries = JSON.parse(localStorage.getItem('ft2_e') || '{}');
 let instructions = JSON.parse(localStorage.getItem('ft2_i') || '{}');
 let recordsManual = JSON.parse(localStorage.getItem('ft2_rm') || '{}');
-let weeklyGoal = JSON.parse(localStorage.getItem('ft2_goal') || '30');
+let weeklyGoal = JSON.parse(localStorage.getItem('ft2_goal') || '{"Robin":30, "Carla":30}');
 let currentDate = new Date(), statPeriod = 'all', editKey = null, editIdx = null;
 
-// Utilisateur actif (Duel)
 let currentUser = localStorage.getItem('fit_user') || 'Robin';
 
-// LA SAUVEGARDE QUI GÈRE LE LOCAL ET FIREBASE
+// MIGRATION DES ANCIENNES DONNÉES VERS DES PROFILS SÉPARÉS
+function migrateData() {
+    if (!recordsManual['Robin']) { const old = {...recordsManual}; recordsManual = {'Robin':old, 'Carla':{}}; }
+    if (!instructions['Robin']) { const old = {...instructions}; instructions = {'Robin':old, 'Carla':{}}; }
+    if (typeof weeklyGoal === 'number' || typeof weeklyGoal === 'string') { weeklyGoal = {'Robin':Number(weeklyGoal), 'Carla':30}; }
+}
+migrateData();
+
 window.save = function(fromFirebase = false){ 
     localStorage.setItem('ft2_e', JSON.stringify(entries)); 
     localStorage.setItem('ft2_i', JSON.stringify(instructions));
     localStorage.setItem('ft2_rm', JSON.stringify(recordsManual));
     localStorage.setItem('ft2_goal', JSON.stringify(weeklyGoal));
-    if(!fromFirebase) {
-        set(dataRef, { entries, instructions, recordsManual, weeklyGoal });
-    }
+    if(!fromFirebase) set(dataRef, { entries, instructions, recordsManual, weeklyGoal });
 }
 
-// LECTURE DEPUIS FIREBASE
 onValue(dataRef, (snapshot) => {
     const data = snapshot.val();
     if (data) {
         entries = data.entries || {};
-        instructions = data.instructions || {};
-        recordsManual = data.recordsManual || {};
-        weeklyGoal = data.weeklyGoal || 30;
-        window.save(true); // Sauvegarde locale sans renvoyer au serveur
+        instructions = data.instructions || {'Robin':{}, 'Carla':{}};
+        recordsManual = data.recordsManual || {'Robin':{}, 'Carla':{}};
+        weeklyGoal = data.weeklyGoal || {'Robin':30, 'Carla':30};
+        window.save(true);
         refreshAll();
     }
 });
 
 function refreshAll() {
+    updateUserTags();
     renderCalendar();
     renderStats();
     renderHeatmap();
@@ -248,7 +256,6 @@ function refreshAll() {
     renderInstructions();
 }
 
-// Fonction pour changer d'utilisateur
 window.changeUser = (u) => { 
     currentUser = u; 
     localStorage.setItem('fit_user', u); 
@@ -261,7 +268,14 @@ function updateUserButtons() {
     document.getElementById('btn-carla').className = 'u-btn' + (currentUser === 'Carla' ? ' active-carla' : '');
 }
 
-// TES FONCTIONS D'ORIGINE EXAECTES (Attachées à window pour fonctionner avec module)
+function updateUserTags() {
+    const tags = ['streak-user', 'goal-user', 'hm-user', 'rec-auto-user', 'rec-man-user', 'inst-user', 'add-for-user'];
+    tags.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = currentUser;
+    });
+}
+
 window.exportData = function(){
   const b=new Blob([JSON.stringify({entries,instructions,recordsManual,weeklyGoal})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`fitness_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
@@ -270,7 +284,7 @@ window.importData = function(ev){
   const f=ev.target.files[0]; if(!f)return;
   const r=new FileReader(); r.onload=(e)=>{
     const d=JSON.parse(e.target.result); 
-    entries=d.entries||{}; instructions=d.instructions||{}; recordsManual=d.recordsManual||{}; weeklyGoal=d.weeklyGoal||30;
+    entries=d.entries||{}; instructions=d.instructions||{'Robin':{}, 'Carla':{}}; recordsManual=d.recordsManual||{'Robin':{}, 'Carla':{}}; weeklyGoal=d.weeklyGoal||{'Robin':30, 'Carla':30};
     window.save(); location.reload();
   }; r.readAsText(f);
 }
@@ -298,10 +312,10 @@ function renderCalendar(){
  for(let d=1;d<=total;d++){
      const k=key(new Date(y,m,d)); const list=entries[k]||[];
      let badges=list.map(e=>{
+         let u = e.user || 'Robin';
          const s=SPORTS.find(sp=>sp.id===e.sport);
-         const uCol = e.user === 'Carla' ? 'var(--pink)' : (e.user === 'Robin' ? 'var(--accent)' : 'transparent');
-         const init = e.user ? `<b>${e.user[0]}</b> ` : '';
-         return `<span class="sport-badge" style="border-left-color:${uCol}; background:${s.color}22;color:${s.color}">${init}${s.icon} ${e.km||e.time||''}</span>`;
+         const uCol = u === 'Carla' ? 'var(--pink)' : 'var(--accent)';
+         return `<span class="sport-badge" style="border-left-color:${uCol}; background:${s.color}22;color:${s.color}"><b>${u[0]}</b> ${s.icon} ${e.km||e.time||''}</span>`;
      }).join('');
      html+=`<div class="cal-day ${k===key(new Date())?'today':''}" onclick="openModal('${k}')"><div class="day-num">${d}</div>${badges}</div>`;
  }
@@ -316,8 +330,9 @@ function renderHeatmap(){
     while(curr <= now){
         if(curr.getDay() === 1) html += '<div class="heatmap-week">';
         const k = key(curr), dE = entries[k] || [];
-        const count = dE.filter(e => e.sport !== 'skip').length;
-        const skip = dE.some(e => e.sport === 'skip');
+        const userEntries = dE.filter(e => (e.user || 'Robin') === currentUser);
+        const count = userEntries.filter(e => e.sport !== 'skip').length;
+        const skip = userEntries.some(e => e.sport === 'skip');
         let lvl = count > 0 ? Math.min(count, 4) : 0;
         let cls = 'hm-day' + (skip && count === 0 ? ' hm-skip' : (lvl > 0 ? ` hm-level-${lvl}` : ''));
         html += `<div class="${cls}" title="${k}"></div>`;
@@ -329,14 +344,18 @@ function renderHeatmap(){
 }
 
 window.setStatPeriod = function(p, btn){ statPeriod=p; document.querySelectorAll('#stats .f-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderStats(); }
-window.updateWeeklyGoal = function(){ const res = prompt("Objectif hebdo (km) :", weeklyGoal); if(res && !isNaN(res)){ weeklyGoal = parseFloat(res); window.save(); renderStats(); } }
+window.updateWeeklyGoal = function(){ 
+    const res = prompt(`Objectif hebdo pour ${currentUser} (km) :`, weeklyGoal[currentUser]); 
+    if(res && !isNaN(res)){ weeklyGoal[currentUser] = parseFloat(res); window.save(); renderStats(); } 
+}
 
 function renderStats(){
   let streak=0, d=new Date(), lastWasSkip=false;
   while(true){
     const day=entries[key(d)]||[];
-    const hasSport = day.some(e=>e.sport!=='skip');
-    const hasSkip = day.some(e=>e.sport==='skip');
+    const userDay = day.filter(e => (e.user || 'Robin') === currentUser);
+    const hasSport = userDay.some(e=>e.sport!=='skip');
+    const hasSkip = userDay.some(e=>e.sport==='skip');
     if(hasSport) { streak++; lastWasSkip=false; }
     else if(hasSkip && !lastWasSkip) { lastWasSkip=true; }
     else if(key(d) === key(new Date())) {} else break;
@@ -344,7 +363,7 @@ function renderStats(){
   }
   document.getElementById('streak-val').innerText = streak;
   
-  let wKm=0, rKm=0, eKm=0; 
+  let wKm=0, rKm=0, cKm=0; 
   const now=new Date(); const mon = new Date(); mon.setDate(now.getDate()-((now.getDay()+6)%7)); mon.setHours(0,0,0,0);
   
   Object.entries(entries).forEach(([k, day])=>{ 
@@ -354,26 +373,30 @@ function renderStats(){
       if(statPeriod==='week' && dk < mon) inPeriod = false;
 
       day.forEach(e=>{ 
+          let u = e.user || 'Robin';
           if(e.sport!=='skip') {
-              if(new Date(k) >= mon) wKm+=e.km||0; // Pour l'objectif hebdo
+              if(new Date(k) >= mon && u === currentUser) wKm+=e.km||0; 
               if(inPeriod) {
-                  if(e.user === 'Robin') rKm+=e.km||0;
-                  else if(e.user === 'Carla') eKm+=e.km||0;
+                  if(u === 'Robin') rKm+=e.km||0;
+                  else if(u === 'Carla') cKm+=e.km||0;
               }
           }
       }); 
   });
   
-  document.getElementById('goal-val').innerText = `${wKm.toFixed(1)} / ${weeklyGoal} km`;
-  document.getElementById('goal-bar').style.width = Math.min(100, (wKm/weeklyGoal)*100) + '%';
+  document.getElementById('goal-val').innerText = `${wKm.toFixed(1)} / ${weeklyGoal[currentUser]} km`;
+  document.getElementById('goal-bar').style.width = Math.min(100, (wKm/weeklyGoal[currentUser])*100) + '%';
   document.getElementById('duel-robin').innerText = rKm.toFixed(1) + ' km';
-  document.getElementById('duel-carla').innerText = eKm.toFixed(1) + ' km';
+  document.getElementById('duel-carla').innerText = cKm.toFixed(1) + ' km';
 
   const sObj={}; SPORTS.forEach(s=>sObj[s.id]={k:0, t:0, n:0});
   Object.entries(entries).forEach(([k, day])=>{
       const dk = new Date(k); if(statPeriod==='month' && dk.getMonth()!==now.getMonth()) return;
       if(statPeriod==='week' && dk < mon) return;
-      day.forEach(e=>{ sObj[e.sport].k+=e.km||0; sObj[e.sport].t+=e.time||0; sObj[e.sport].n++; });
+      day.forEach(e=>{ 
+          if((e.user || 'Robin') !== currentUser) return; // FILTRE PAR UTILISATEUR
+          sObj[e.sport].k+=e.km||0; sObj[e.sport].t+=e.time||0; sObj[e.sport].n++; 
+      });
   });
   document.getElementById('stat-grid').innerHTML = SPORTS.filter(s=>s.id!=='skip').map(s=>{
     const v=sObj[s.id]; if(v.n===0 && statPeriod!=='all') return '';
@@ -384,6 +407,7 @@ function renderStats(){
 function renderRecords(){
     const auto = { run:{dist:0, speed:0}, bike:{dist:0, speed:0}, walk:{dist:0, speed:0} };
     Object.values(entries).flat().forEach(e=>{
+        if((e.user || 'Robin') !== currentUser) return; // FILTRE PAR UTILISATEUR
         if(auto[e.sport]){
             if(e.km > auto[e.sport].dist) auto[e.sport].dist = e.km;
             if(e.km > 0 && e.time > 0){
@@ -396,18 +420,19 @@ function renderRecords(){
         const pace = val.speed > 0 ? (id==='bike' ? `${val.speed.toFixed(1)} km/h` : `${Math.floor(60/val.speed)}'${String(Math.round(((60/val.speed)%1)*60)).padStart(2,'0')}/km`) : '-';
         return `<div class="stat-card" style="margin-bottom:8px"><div style="font-weight:600; color:${s.color}; margin-bottom:8px">${s.icon} ${s.name}</div><div class="rec-item"><span>Distance Max</span><span class="rec-val">${val.dist > 0 ? val.dist.toFixed(1)+' km' : '-'}</span></div><div class="rec-item"><span>Record Rythme</span><span class="rec-val">${pace}</span></div></div>`;
     }).join('');
+    
     document.getElementById('manual-records').innerHTML = SPORTS.filter(s=>!s.isAuto && s.id!=='skip').map(s=>{
-        return `<div class="stat-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px"><span>${s.icon} ${s.name}</span><input style="background:var(--bg2);border:none;color:var(--text1);padding:6px;border-radius:6px;width:120px;text-align:right" type="text" value="${recordsManual[s.id]||''}" onchange="updateManualRecord('${s.id}', this.value)"></div>`;
+        return `<div class="stat-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px"><span>${s.icon} ${s.name}</span><input style="background:var(--bg2);border:none;color:var(--text1);padding:6px;border-radius:6px;width:120px;text-align:right" type="text" value="${recordsManual[currentUser][s.id]||''}" onchange="updateManualRecord('${s.id}', this.value)"></div>`;
     }).join('');
 }
 
-window.updateManualRecord = function(id, val){ recordsManual[id] = val; window.save(); }
+window.updateManualRecord = function(id, val){ recordsManual[currentUser][id] = val; window.save(); }
 
 function renderInstructions(){
-  document.getElementById('instr-list').innerHTML=SPORTS.map(s=>`<div class="instr-card"><h3>${s.icon} <span style="color:${s.color}">${s.name}</span></h3><textarea oninput="updateInstruction('${s.id}', this.value)">${instructions[s.id]||''}</textarea></div>`).join('');
+  document.getElementById('instr-list').innerHTML=SPORTS.map(s=>`<div class="instr-card"><h3>${s.icon} <span style="color:${s.color}">${s.name}</span></h3><textarea oninput="updateInstruction('${s.id}', this.value)">${instructions[currentUser][s.id]||''}</textarea></div>`).join('');
 }
 
-window.updateInstruction = function(id, val){ instructions[id] = val; window.save(); }
+window.updateInstruction = function(id, val){ instructions[currentUser][id] = val; window.save(); }
 
 window.openModal = function(k){ 
     editKey=k; const d=new Date(k+'T12:00:00'); 
@@ -417,11 +442,15 @@ window.openModal = function(k){
 
 function renderEntriesList(){
     const list=entries[editKey]||[];
-    document.getElementById('list-container').innerHTML=list.map((e,i)=>`
+    document.getElementById('list-container').innerHTML=list.map((e,i)=>{
+        let u = e.user || 'Robin';
+        const col = u === 'Carla' ? 'var(--pink)' : 'var(--accent)';
+        return `
         <div class="list-entry" onclick="showForm(${i})">
-            <span style="font-size:14px"><b>${e.user ? e.user[0]+':' : ''}</b> ${SPORTS.find(s=>s.id===e.sport).icon} ${e.km?e.km+'km':''} ${e.time?e.time+'m':''}</span>
+            <span style="font-size:14px"><b style="color:${col}">${u[0]}</b> ${SPORTS.find(s=>s.id===e.sport).icon} ${e.km?e.km+'km':''} ${e.time?e.time+'m':''}</span>
             <span style="color:var(--text3); font-size:12px">Modifier ❯</span>
-        </div>`).join('');
+        </div>`
+    }).join('');
 }
 
 window.showForm = function(idx = null){
@@ -459,7 +488,6 @@ window.saveEntry = function(){
 
     if(!entries[editKey]) entries[editKey]=[];
     
-    // On conserve le propriétaire de la séance si c'est une modification
     let entryUser = currentUser;
     if(editIdx !== null && entries[editKey][editIdx].user) {
         entryUser = entries[editKey][editIdx].user;
@@ -481,7 +509,6 @@ window.deleteEntryFromForm = function(){
     }
 }
 
-// Initialisation au lancement de la page
 updateUserButtons();
 refreshAll();
 </script>
