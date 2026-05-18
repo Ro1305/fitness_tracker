@@ -186,6 +186,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+// 👉 1. Ajoute cette ligne pour importer l'authentification
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDhXyhxko-85-JqA3BUfM4jzmcO_tBl9JI",
@@ -199,6 +201,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+// 👉 2. Ajoute cette ligne pour que ton site se souvienne de ta connexion
+const auth = getAuth(app); 
+
 const dataRef = ref(db, 'fitness_sync');
 
 const SPORTS=[
